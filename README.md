@@ -31,7 +31,7 @@ Figure 4. county/DPP_opt_clim.png
 Figure 5. county/DPP_future.png  
 Figure 6. variation_DPP.png  
 
-**Supplement**
+**Supplement**  
 Table S1. county/table_all.png  
 Table S2.  exact_location/table_all.png  
 Figure S1. climate_trends.png  
@@ -43,7 +43,7 @@ Figure S6. county/yield_optimum_relationship.png
 Figure S7. county/dpp_distribution.png  
 Figure S8. county/ALL_resids.png  
 Figure S9. county/DOY_opt_clim.png  
-Figure S10.  exact location/DPP_opt_clim.png 
+Figure S10.  exact location/DPP_opt_clim.png  
 Figure S11. county/fixed_DPP_opt_clim.png  
 Figure S12. county_fixed_DOY_opt_clim.png  
 Figure S13. county/DOY_future.png  
