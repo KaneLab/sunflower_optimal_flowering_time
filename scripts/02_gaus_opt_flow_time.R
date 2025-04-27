@@ -19,15 +19,15 @@ library(lmerTest)
 select <- dplyr::select
 
 # Custom Functions 
-source("scripts/optimal_flowering_paper/00_analysis_functions.R")
+source("scripts/00_analysis_functions.R")
 
-deriv_data_filepath <- "scripts/optimal_flowering_paper/opt_clim_derived_data"
-figure_filepath <- "scripts/optimal_flowering_paper/opt_clim_figures"
+deriv_data_filepath <- "derived_data"
+figure_filepath <- "figures"
 
 # Data --------------------------------------------------------------------
 
 ## Phenology Data
-deriv_data <- read.csv("data_derived/sunflower_data_simple_v1.csv")
+deriv_data <- read.csv("data/sunflower_data_simple_v1.csv")
 
 ### fix up columns
 deriv_data$Irrigated <- as.factor(deriv_data$Irrigated)

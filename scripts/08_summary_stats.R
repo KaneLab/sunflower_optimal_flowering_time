@@ -7,7 +7,7 @@
 # Packages ----------------------------------------------------------------
 library(tidyverse)
 
-deriv_data_filepath <- "scripts/optimal_flowering_paper/opt_clim_derived_data"
+deriv_data_filepath <- "derived_data"
 
 # Data --------------------------------------------------------------------
 

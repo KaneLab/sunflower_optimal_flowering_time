@@ -23,7 +23,7 @@ select <- dplyr::select
 
 # Data ------------------------------------------------------------------
 ## Phenology Data
-deriv_data <- read.csv("data_derived/sunflower_data_simple_v1.csv")
+deriv_data <- read.csv("data/sunflower_data_simple_v1.csv")
 
 ### fix up columns
 deriv_data$Irrigated <- as.factor(deriv_data$Irrigated)
@@ -36,13 +36,13 @@ deriv_data <- deriv_data %>%
   mutate(county_state = paste(garden_county, State, sep = '_'))
 
 
-deriv_data_filepath <- "scripts/optimal_flowering_paper/opt_clim_derived_data"
-figure_filepath <- "scripts/optimal_flowering_paper/opt_clim_figures"
+deriv_data_filepath <- "derived_data"
+figure_filepath <- "figures"
 
 # Functions -------------------------------------------------------------
 
 # Custom functions
-source("scripts/optimal_flowering_paper/00_analysis_functions.R")
+source("scripts/00_analysis_functions.R")
 
 
 
@@ -778,17 +778,17 @@ orchaRd::orchard_plot(state_r2_allcounty, mod = "State", group = 'group', xlab =
 
 
 
-## R2 and OPT_RELATION optimal (not used) -----------------------------------
-# Not used below here
-R2_allcounty_data %>% left_join(optim_county %>% select(county_state, Year, opt_relation_to_data),
-                                by = c("county" = "county_state", "Year")) %>% 
-  # lme4::lmer(yi.adj ~ opt_relation_to_data + n_site_yr_sc + n_site_yr2_sc + (1|county), data = .) %>%
-  # emmeans::emmeans(pairwise~opt_relation_to_data)
-  group_by(opt_relation_to_data) %>%
-  summarise(R2 = mean(yi.adj),
-            n = n(),
-            ave_n_site_yr = mean(n_site_yr))
-
+# ## R2 and OPT_RELATION optimal (not used) -----------------------------------
+# # Not used below here
+# R2_allcounty_data %>% left_join(optim_county %>% select(county_state, Year, opt_relation_to_data),
+#                                 by = c("county" = "county_state", "Year")) %>% 
+#   # lme4::lmer(yi.adj ~ opt_relation_to_data + n_site_yr_sc + n_site_yr2_sc + (1|county), data = .) %>%
+#   # emmeans::emmeans(pairwise~opt_relation_to_data)
+#   group_by(opt_relation_to_data) %>%
+#   summarise(R2 = mean(yi.adj),
+#             n = n(),
+#             ave_n_site_yr = mean(n_site_yr))
+# 
 
 
 

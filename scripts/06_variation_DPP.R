@@ -11,16 +11,16 @@ library(tidyverse)
 library(ggpubr)
 
 
-figure_filepath <- "scripts/optimal_flowering_paper/opt_clim_figures"
+figure_filepath <- "figures"
 
 
 # Data ----------------------------------------------------------------
 
 # Download GRIN data from
 # https://npgsweb.ars-grin.gov/gringlobal/descriptordetail?id=79038
-grin_data <- read.csv("scripts/misc_eic_scripts/grin_dayflow.csv")
+grin_data <- read.csv("data/grin_dayflow.csv")
 
-deriv_data <- read.csv("data_derived/sunflower_data_simple_v1.csv")
+deriv_data <- read.csv("data/sunflower_data_simple_v1.csv")
 deriv_data$Irrigated <- as.factor(deriv_data$Irrigated)
 deriv_data$Oil_Confection <- as.factor(deriv_data$Oil_Confection)
 deriv_data$Location <- as.factor(deriv_data$Location)

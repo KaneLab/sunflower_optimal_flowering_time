@@ -13,8 +13,8 @@ library(ggpmisc)
 library(VGAM)
 library(ggpubr)
 
-deriv_data_filepath <- "scripts/optimal_flowering_paper/opt_clim_derived_data"
-figure_filepath <- "scripts/optimal_flowering_paper/opt_clim_figures"
+deriv_data_filepath <- "derived_data"
+figure_filepath <- "figures"
 
 # Data --------------------------------------------------------------------
 by_county = TRUE
@@ -275,6 +275,7 @@ GDD_multi_predict_newdat <- data.frame(GDD_mod_sitemean = c(seq(clim_summary$min
                                        GDD_anomaly = rep(clim_summary$mean_GDD_anom, 30*3),
                                        tot_precip_sitemean = rep(clim_summary$mean_precip, 30*3),
                                        var = rep(c("GDD_mod_sitemean", "precip_anomaly", "frost_anomaly"), each = 30))
+
 ## predict
 GDD_multi_predict <- data.frame(GDD_multi_predict_newdat, 
                                 predict(GDD_multi_mod, newdata = GDD_multi_predict_newdat,
@@ -316,8 +317,66 @@ ggarrange(
           panel.grid = element_blank()),
   ncol = 2, labels = 'AUTO', common.legend = T)
 
+
+
+
+## different package for climate multinomial regression to get error bars on plot
+library(nnet)
+
+test <- multinom(opt_relation_to_data ~ GDD_mod_sitemean + GDD_anomaly + 
+                   tot_precip_sitemean + precip_anomaly + frost_anomaly, 
+                 data = optim_clim_county_multi %>% filter(!is.na(GDD_anomaly)))
+
+summary(test)
+predict(test, newdata = GDD_multi_predict_newdat, "probs")
+fit.eff <- effects::Effect(c("GDD_mod_sitemean"), test, xlevels = 50)
+plot(fit.eff)
+gddmulti_plot <- data.frame(fit.eff$model.matrix, fit.eff$prob, fit.eff$lower.prob, 
+           fit.eff$upper.prob) %>% 
+  pivot_longer(cols = -c(X.Intercept., GDD_mod_sitemean, precip_anomaly, frost_anomaly, GDD_anomaly, tot_precip_sitemean), 
+               names_to = c(".value", "flowering_was"),
+             names_pattern = "(.*).(opt_within|opt_after|opt_before|unclear)") %>%
+  mutate(flowering_was = factor(flowering_was, 
+                                levels = c("opt_within", "opt_after", "opt_before", "unclear"),
+                                labels = c("suitable", "early", "late", "unclear"))) %>%
+  ggplot() +
+  geom_ribbon(aes(x = GDD_mod_sitemean, ymin = L.prob, ymax = U.prob,
+                  group = flowering_was), alpha = 0.1) +
+  geom_line(aes(x = GDD_mod_sitemean, y = prob, color = flowering_was),
+            linewidth = 1.4, linetype = 2) +
+  scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
+  labs(y = "Predicted probability", color = "Flowering was:", x = "GDD site mean") +
+  theme_bw(base_size = 16) +
+  theme(legend.position = 'right',
+        panel.grid = element_blank())
+
+fit.eff2 <- effects::Effect(c("frost_anomaly"), test, xlevels = 50)
+plot(fit.eff2)
+frostmulti_plot <- data.frame(fit.eff2$model.matrix, fit.eff2$prob, fit.eff2$lower.prob, 
+           fit.eff2$upper.prob) %>% 
+  pivot_longer(cols = -c(X.Intercept., GDD_mod_sitemean, precip_anomaly, frost_anomaly, GDD_anomaly, tot_precip_sitemean), 
+               names_to = c(".value", "flowering_was"),
+               names_pattern = "(.*).(opt_within|opt_after|opt_before|unclear)") %>%
+  mutate(flowering_was = factor(flowering_was, 
+                                levels = c("opt_within", "opt_after", "opt_before", "unclear"),
+                                labels = c("suitable", "early", "late", "unclear"))) %>%
+  ggplot() +
+  geom_ribbon(aes(x = frost_anomaly, ymin = L.prob, ymax = U.prob,
+                  group = flowering_was), alpha = 0.1) +
+  geom_line(aes(x = frost_anomaly, y = prob, color = flowering_was),
+            linewidth = 1.4, linetype = 2) +
+  scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
+  labs(y = "Predicted probability", color = "Flowering was:", x = "First frost anomaly") +
+  theme_bw(base_size = 16) +
+  theme(legend.position = 'right',
+        panel.grid = element_blank())
+
+ggarrange(gddmulti_plot, frostmulti_plot,
+  ncol = 2, labels = 'AUTO', common.legend = T)
 ggsave(paste0(path2plots, "climate_mult_full.png"), 
        width = 12*.75, height = 7*.75)
+
+
 
 
 

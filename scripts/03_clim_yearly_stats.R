@@ -15,36 +15,24 @@ library(GGally)
 library(factoextra)
 
 
-#!! Are these packages necessary?
-# library(lme4) 
-# library(msm) 
-# library(MASS) 
-# library(here) 
-# library(brms)
-# library(tidybayes)
-# library(ggeffects)
-# library(naniar)
-# library(ggmcmc)
-# library(lisa)
-
-deriv_data_filepath <- "scripts/optimal_flowering_paper/opt_clim_derived_data"
-
+deriv_data_filepath <- "derived_data"
+path2climatedata <- "data/"
 
 # Data --------------------------------------------------------------------
 
 ## Climate Data ----------------
 
-# Daymet daily data
-
-#Pogoda server path
-if(dir.exists("/home/elizaic/sunflower_geospatial/Sunflower_Geospatial/data/")){
-  path2climatedata <- "/home/elizaic/sunflower_geospatial/Sunflower_Geospatial/data/"
-}
-
-#Laptop local path
-if(dir.exists("C:/Users/elcl6271/Local Documents")){
-  path2climatedata <- "C:/Users/elcl6271/Local Documents/CU SUNFLOWER/"
-}
+# # Daymet daily data
+# 
+# #Pogoda server path
+# if(dir.exists("/home/elizaic/sunflower_geospatial/Sunflower_Geospatial/data/")){
+#   path2climatedata <- "/home/elizaic/sunflower_geospatial/Sunflower_Geospatial/data/"
+# }
+# 
+# #Laptop local path
+# if(dir.exists("C:/Users/elcl6271/Local Documents")){
+#   path2climatedata <- "C:/Users/elcl6271/Local Documents/CU SUNFLOWER/"
+# }
 
 clim_data <- read.csv(paste0(path2climatedata, "daymet_timeseries_cleaned.csv"))
 # fresh copy of the climate data, because it takes forever to read in
@@ -71,7 +59,7 @@ clim_data_fresh <- clim_data
 
 
 ## Phenology Data
-deriv_data <- read.csv("data_derived/sunflower_data_simple_v1.csv")
+deriv_data <- read.csv("data/sunflower_data_simple_v1.csv")
 
 ### fix up columns
 deriv_data$Irrigated <- as.factor(deriv_data$Irrigated)

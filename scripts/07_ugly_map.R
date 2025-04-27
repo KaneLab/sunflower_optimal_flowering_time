@@ -12,8 +12,8 @@ library(tidyverse)
 library(ggpubr)
 library(cowplot)
 
-figure_filepath <- "scripts/optimal_flowering_paper/opt_clim_figures"
-deriv_data_filepath <- "scripts/optimal_flowering_paper/opt_clim_derived_data"
+figure_filepath <- "figures"
+deriv_data_filepath <- "derived_data"
 
 # Data ------------------------------------------------------------------------
 
