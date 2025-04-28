@@ -2369,17 +2369,25 @@ new_data2_fut_dpp %>%
   filter(!is.na(y_realistic),
          GDD_anomaly_sc == "Projected mid-century\naverage year") %>%
   # what is the y_realistic at 50th percentile
-  # summarise(median = median(y_realistic),
-  #           lower = quantile(y_realistic, 0.05),
-  #           upper = quantile(y_realistic, 0.95))
+  summarise(median = median(y_realistic),
+            lower = quantile(y_realistic, 0.05),
+            upper = quantile(y_realistic, 0.95))
   # ggplot() +
   # geom_density(aes(x = y_realistic, fill = "Future Climates"),
   #              alpha = 0.3) 
-  # proportion of realistic points that are below 65 days
-  summarise(prop_70 = sum(y_realistic < 70) / n(),
-            prop_60 = sum(y_realistic < 60) / n(),
-            prop_55 = sum(y_realistic < 55) / n())
+  # proportion of realistic points that are below 55 days
+  # summarise(prop_70 = sum(y_realistic < 70) / n(),
+  #           prop_60 = sum(y_realistic < 60) / n(),
+  #           prop_58 = sum(y_realistic < 58) / n())
 
+# quantiles of current average optimal days to flowering
+new_data2_fut_dpp %>% 
+  filter(!is.na(y_realistic),
+         GDD_anomaly_sc == "Average year\n(50th percentile)") %>%
+  # what is the y_realistic at 50th percentile for current average
+  summarise(median = median(y_realistic),
+            lower = quantile(y_realistic, 0.05),
+            upper = quantile(y_realistic, 0.95))
 
 
 ############################################################################.

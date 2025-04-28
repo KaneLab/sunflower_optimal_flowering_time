@@ -63,7 +63,7 @@ grin_data_summarised %>%
        y = "Count") +
   theme_bw() +
   theme(panel.grid = element_blank())
-grin_data_summarised %>% summarise(prop_55 = sum(mean_obs_val < 55) / n())
+grin_data_summarised %>% summarise(prop_58 = sum(mean_obs_val < 58) / n())
 
 
 # DERIV_DATA
@@ -84,7 +84,9 @@ deriv_data_summarised %>%
        y = "Count") +
   theme_bw() +
   theme(panel.grid = element_blank())
-deriv_data_summarised %>% summarise(prop_55 = sum(mean_flower_dpp < 55, na.rm = T) / n())
+deriv_data_summarised %>% summarise(prop_58 = sum(mean_flower_dpp < 58, na.rm = T) / n())
+# only 3% of genotypes had an average flowering date below 58 days (which is projected median
+# optimal flowering time in the future)
 
 
 
@@ -99,9 +101,11 @@ deriv_data %>%
        y = "Count") +
   theme_bw() +
   theme(panel.grid = element_blank())
-deriv_data %>% summarise(prop_55 = sum(flower_50pct_days_past_planting < 55, na.rm = T) / n())
-
-
+deriv_data %>% summarise(prop_58 = sum(flower_50pct_days_past_planting < 58, na.rm = T) / n())
+# Only 8% of records had a flowering date below 58 days (which is projected 
+# median optimal flowering time in the future)
+deriv_data %>% filter(flower_50pct_days_past_planting <= 58) %>% 
+  distinct(Unif_Name) %>% nrow() / (deriv_data %>% nrow())
 
 # Both datasets
 # average number of days to flowering for each genotype
@@ -121,11 +125,11 @@ deriv_data %>%
   #                 alpha = 0.3) +
   # geom_density(data = grin_data, aes(x = observation_value, fill = "USDA Accessions"),
   #              alpha = 0.3) +
-  geom_vline(xintercept = c(65), linetype = 1, linewidth = 1) + # current median optimal days to flowering
-  geom_vline(xintercept = c(55), linetype = 2, linewidth = 1) + # future median opt 
+  geom_vline(xintercept = c(64), linetype = 1, linewidth = 1) + # current median optimal days to flowering
+  geom_vline(xintercept = c(58), linetype = 2, linewidth = 1) + # future median opt 
   scale_fill_brewer(palette = "Dark2", direction = -1) +
   annotate("text", x = 66, y = 300, label = "Current median\noptimum", hjust = 0, size = 5) +
-  annotate("text", x = 54, y = 300, label = "Future median\noptimum", hjust = 1, size = 5) +
+  annotate("text", x = 56, y = 300, label = "Future median\noptimum", hjust = 1, size = 5) +
   # annotate('segment', x = 76, y = 300, yend = 300, xend = 65.5, linewidth = 0.75,
     # arrow = arrow(length = unit(0.4, 'cm'))) +
   labs(x = "Days to flowering",
