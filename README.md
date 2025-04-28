@@ -3,7 +3,7 @@
 Eliza Clark
 
 Created: 17 April 2025  
-Last updated: 17 April 2025
+Last updated: 28 April 2025
 
 
 ## How to run
@@ -12,19 +12,22 @@ Last updated: 17 April 2025
 
 Put all input files in a directory that you make called `data/` in the root of the repository. The scripts will look for the data files in this directory.
 
-1. *sunflower_data_simple_v1.csv* Download this file from Ag Data Commons. Citation with doi.
+1. *sunflower_data_simple_v1.csv* Download this file from Ag Data Commons. [Citation with doi.]
 
-2. *daymet_timeseries_cleaned.csv* You will need to run the climate scripts to generate this file, which contains climate from the daymet database.
+2. *daymet_timeseries_cleaned.csv* This is the climate data from Daymet. To get this file, run the make file in the scripts/climate directory. 
 
 3. *grin_dayflow.csv* Download this data from  GRIN-Global at https://npgsweb.ars-grin.gov/gringlobal/descriptordetail?id=79038 
 
 ### Run Scripts
 
-After downloading the above data, you can run the scripts in order. The data derived from these files and resulting figures will be saved in the corresponding folders. All output is already in the repository, so you can skip this step if you just want to look at the results.
+After downloading the above data, you can run the scripts in order. After running all scripts once, all intermediate files will be saved and each script may be run without running the others first. The data derived from these files and resulting figures will be saved in the corresponding folders. All output is already in the repository, so you can skip this step if you just want to look at the results.
+
+### Descriptions of scripts
+The description of each script, files it uses, and files it creates is in the word document "Script_Descriptions" in the scripts directory.
 
 ### List of figures and tables in manuscript
 Table 1. county/table_dpp.png  
-Figure 1. county/ugly_map.png  
+Figure 1. -- [map not made in R]  
 Figure 2. county/state_r2_county_unadj.png  
 Figure 3. county/climate_mult_full.png  
 Figure 4. county/DPP_opt_clim.png  
@@ -45,7 +48,8 @@ Figure S8. county/ALL_resids.png
 Figure S9. county/DOY_opt_clim.png  
 Figure S10.  exact location/DPP_opt_clim.png  
 Figure S11. county/fixed_DPP_opt_clim.png  
-Figure S12. county_fixed_DOY_opt_clim.png  
+Figure S12. county/fixed_DOY_opt_clim.png  
 Figure S13. county/DOY_future.png  
-Figure S14. nass_planting_dates.png  
+Figure S14. nass_planting_dates.png (not in repository)  
+
 
