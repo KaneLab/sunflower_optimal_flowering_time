@@ -25,6 +25,8 @@
 #*README_files/
 
 # Input data files
-data/
+# data/
+daymet_timeseries_cleaned.csv
+grin_dayflow.csv
 
 .Rproj.user
