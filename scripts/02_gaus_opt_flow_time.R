@@ -1165,6 +1165,16 @@ ggsave(paste0(figure_filepath,"/county/yield_optimum_relationship.png"), width =
 
 
 
+## ABSOLUTE YIELD CHANGE -----------------------------------------------------------
+# How much is yield predicted to decrease when flowering is +/- 7 days from optimum
+
+R2_full_data <- read.csv(paste0(deriv_data_filepath,"/R2_AIC_data.csv"))
+
+R2_allcounty_data <- R2_full_data %>% filter(subset == 'all_countyloc') %>%
+  mutate(county = group, .after = group)
+
+R2_allcounty_data %>% select(county, Year, mod_for_cens, starts_with("beta"), -beta1_lm_sig)
+
 
 ###################################################--
 ## Questions about optimums ------------------------------------------------
