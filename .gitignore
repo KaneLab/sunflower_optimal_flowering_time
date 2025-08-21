@@ -1,12 +1,12 @@
 #Code copied from: https://ourcodingclub.github.io/tutorials/git-for-labs/
 # Prevent users to commit their own RProject
 *.Rproj.user
-*.Rproj
+#*.Rproj
 # Prevent users to commit their own .RData and .Rhistory in mutual area
 *.RData
 *.Rhistory
 *.Rapp.history
-*.Rproj
+#*.Rproj
 *.Ruserdata
 
 # Temporary files

@@ -1173,8 +1173,28 @@ R2_full_data <- read.csv(paste0(deriv_data_filepath,"/R2_AIC_data.csv"))
 R2_allcounty_data <- R2_full_data %>% filter(subset == 'all_countyloc') %>%
   mutate(county = group, .after = group)
 
-R2_allcounty_data %>% select(county, Year, mod_for_cens, starts_with("beta"), -beta1_lm_sig)
+# coefficients
 
+
+# optimum data
+optim_county <- read.csv(paste0(deriv_data_filepath,"/optimum_flowering_time_county.csv"))
+abs_yield_change <- full_join(
+  # coefficients
+  R2_allcounty_data %>% select(county, Year, mod_for_cens, starts_with("beta"), -beta1_lm_sig),
+  optim_county %>% 
+    select(county_state, Year, mu, mod_for_cens)
+    # mutate(Year = as.numeric(as.character(Year))) %>%
+    # rename(county = county_state),
+  ,
+  by = c('county' = 'county_state', "Year", 'mod_for_cens')
+  )
+
+abs_yield_change <- abs_yield_change %>%
+  mutate(
+    gaus_delta7 <- 
+  ))
+
+# 
 
 ###################################################--
 ## Questions about optimums ------------------------------------------------
