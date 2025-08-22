@@ -1173,7 +1173,14 @@ R2_full_data <- read.csv(paste0(deriv_data_filepath,"/R2_AIC_data.csv"))
 R2_allcounty_data <- R2_full_data %>% filter(subset == 'all_countyloc') %>%
   mutate(county = group, .after = group)
 
-# coefficients
+# average yield and flowering window of each trial
+trial_yld_flow_summary <- subset_data %>% 
+  group_by(county_state, Year) %>% 
+  summarise(trial_yield = mean(yield_lb_acre, na.rm = T),
+            first_flow = min(flower_50_doy),
+            last_flow = max(flower_50_doy)) %>% 
+  left_join(subset_data %>%
+              distinct(county_state, Year, lat))
 
 
 # optimum data
@@ -1182,19 +1189,104 @@ abs_yield_change <- full_join(
   # coefficients
   R2_allcounty_data %>% select(county, Year, mod_for_cens, starts_with("beta"), -beta1_lm_sig),
   optim_county %>% 
-    select(county_state, Year, mu, mod_for_cens)
+    select(county_state, Year, mu, mod_for_cens, opt_relation_to_data)
     # mutate(Year = as.numeric(as.character(Year))) %>%
     # rename(county = county_state),
   ,
   by = c('county' = 'county_state', "Year", 'mod_for_cens')
-  )
+  ) %>%
+  full_join(., trial_yld_flow_summary %>% 
+              mutate(Year = as.integer(as.character(Year))), 
+            by = c('county' = 'county_state', "Year")
+) %>%
+  filter(!is.na(mu))
 
+# visualizing the curves, for sanity checks
+tst_data <- data.frame(flow_day = seq((214-60),(214+60), by = 1))
+tst_beta0 <-abs_yield_change$beta0_gau[1]
+tst_beta1 <-abs_yield_change$beta1_gau[1]
+tst_beta2 <-abs_yield_change$beta2_gau[1]
+tst_lin0 <-abs_yield_change$beta0_lm[1]
+tst_lin1 <-abs_yield_change$beta1_lm[1]
+tst_data <- tst_data %>%
+  mutate(yield = tst_beta0 + tst_beta1 * (flow_day) + tst_beta2 * (flow_day)^2,
+         yield_unlog = exp(yield),
+         linear = tst_lin0 + tst_lin1 * flow_day,
+         linear_unlog = exp(linear))
+ggplot(tst_data, aes(x = flow_day, y = yield_unlog)) +
+  geom_line()
+ggplot(tst_data, aes(x = flow_day, y = linear_unlog)) +
+  geom_line()
+
+# calculate predicted change in yield with 7 day shift in flowering
 abs_yield_change <- abs_yield_change %>%
   mutate(
-    gaus_delta7 <- 
-  ))
+    # for quadratic models 
+    gaus_delta7 = exp(beta0_gau + beta1_gau * (mu) + beta2_gau * (mu)^2) -
+      exp(beta0_gau + beta1_gau * (mu + 7) + beta2_gau * (mu + 7)^2),
+    # for linear models - positive slope
+    lin_delta_pos = exp(beta0_lm + beta1_lm * last_flow) - 
+      exp(beta0_lm + beta1_lm * (last_flow-7)),
+    # for linear models - negative slope
+    lin_delta_neg = exp(beta0_lm + beta1_lm * first_flow) - 
+      exp(beta0_lm + beta1_lm * (first_flow+7)),
+    # new column that combines the previous columns based on whether that 
+    # trial has an optimum before, after, within, or not at all
+    delta_yield_corrected = as.numeric(ifelse(opt_relation_to_data == 'opt_within', gaus_delta7,
+                                   ifelse(opt_relation_to_data == 'opt_after', lin_delta_pos,
+                                          ifelse(opt_relation_to_data == 'opt_before', lin_delta_neg,
+                                                 ifelse(opt_relation_to_data == 'unclear', 0, "HELP ME"))))),
+    delta_yield_percent = delta_yield_corrected/trial_yield*100
+  )
 
-# 
+daysoff = 5
+abs_yield_change_3day <- abs_yield_change %>%
+  mutate(
+    # for quadratic models 
+    gaus_delta7 = exp(beta0_gau + beta1_gau * (mu) + beta2_gau * (mu)^2) -
+      exp(beta0_gau + beta1_gau * (mu + daysoff) + beta2_gau * (mu + daysoff)^2),
+    # for linear models - positive slope
+    lin_delta_pos = exp(beta0_lm + beta1_lm * last_flow) - 
+      exp(beta0_lm + beta1_lm * (last_flow-daysoff)),
+    # for linear models - negative slope
+    lin_delta_neg = exp(beta0_lm + beta1_lm * first_flow) - 
+      exp(beta0_lm + beta1_lm * (first_flow+daysoff)),
+    # new column that combines the previous columns based on whether that 
+    # trial has an optimum before, after, within, or not at all
+    delta_yield_corrected = as.numeric(ifelse(opt_relation_to_data == 'opt_within', gaus_delta7,
+                                              ifelse(opt_relation_to_data == 'opt_after', lin_delta_pos,
+                                                     ifelse(opt_relation_to_data == 'opt_before', lin_delta_neg,
+                                                            ifelse(opt_relation_to_data == 'unclear', 0, "HELP ME"))))),
+    delta_yield_percent = delta_yield_corrected/trial_yield*100
+  )
+
+# summary stats - average decrease in yield 
+abs_yield_change %>%
+  summarise(mean_abs = mean(delta_yield_corrected, na.rm = T),
+            mean_pct = mean(delta_yield_percent, na.rm = T))
+
+abs_yield_change_3day %>%
+  summarise(mean_abs = mean(delta_yield_corrected, na.rm = T),
+            mean_pct = mean(delta_yield_percent, na.rm = T))
+
+
+ggplot(abs_yield_change %>% filter(opt_relation_to_data != 'unclear'), 
+       aes(x = delta_yield_percent)) +
+  geom_histogram(bins = 32) +
+  geom_vline(xintercept = 21.78, color = 'cornflowerblue', linetype = 2) +
+  annotate('text', x = 25, y = 30, hjust = 0, label = "22% average decrease in yield", color = 'cornflowerblue') +
+  labs(x = "Percent decrease in yield\nwith 7 day shift from optimum in flowering", y = "Number of trials") +
+  theme_bw() +
+  theme(panel.grid = element_blank())
+
+ggplot(abs_yield_change, aes(y = delta_yield_percent, x = opt_relation_to_data)) +
+  geom_boxplot()
+
+lm(delta_yield_percent~ opt_relation_to_data, 
+   data = abs_yield_change %>% filter(opt_relation_to_data != 'unclear')) %>%
+  emmeans::emmeans(pairwise~opt_relation_to_data)
+
+ 
 
 ###################################################--
 ## Questions about optimums ------------------------------------------------
