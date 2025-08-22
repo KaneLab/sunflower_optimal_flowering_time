@@ -1222,67 +1222,115 @@ ggplot(tst_data, aes(x = flow_day, y = linear_unlog)) +
 abs_yield_change <- abs_yield_change %>%
   mutate(
     # for quadratic models 
-    gaus_delta7 = exp(beta0_gau + beta1_gau * (mu) + beta2_gau * (mu)^2) -
-      exp(beta0_gau + beta1_gau * (mu + 7) + beta2_gau * (mu + 7)^2),
+    gaus_delta0 = exp(beta0_gau + beta1_gau * (mu) + beta2_gau * (mu)^2),
+    gaus_delta7 = exp(beta0_gau + beta1_gau * (mu + 7) + beta2_gau * (mu + 7)^2),
+    gaus_delta_pct = (gaus_delta0 - gaus_delta7) / gaus_delta0,
     # for linear models - positive slope
-    lin_delta_pos = exp(beta0_lm + beta1_lm * last_flow) - 
-      exp(beta0_lm + beta1_lm * (last_flow-7)),
+    lin_delta_pos0 = exp(beta0_lm + beta1_lm * last_flow),
+    lin_delta_pos7 = exp(beta0_lm + beta1_lm * (last_flow-7)),
+    lin_delta_pos_pct = (lin_delta_pos0 - lin_delta_pos7) / lin_delta_pos0,
     # for linear models - negative slope
-    lin_delta_neg = exp(beta0_lm + beta1_lm * first_flow) - 
-      exp(beta0_lm + beta1_lm * (first_flow+7)),
+    lin_delta_neg0 = exp(beta0_lm + beta1_lm * first_flow),
+    lin_delta_neg7 = exp(beta0_lm + beta1_lm * (first_flow+7)),
+    lin_delta_neg_pct = (lin_delta_neg0 - lin_delta_neg7) / lin_delta_neg0,
     # new column that combines the previous columns based on whether that 
     # trial has an optimum before, after, within, or not at all
-    delta_yield_corrected = as.numeric(ifelse(opt_relation_to_data == 'opt_within', gaus_delta7,
-                                   ifelse(opt_relation_to_data == 'opt_after', lin_delta_pos,
-                                          ifelse(opt_relation_to_data == 'opt_before', lin_delta_neg,
+    delta_yield_corrected = as.numeric(ifelse(opt_relation_to_data == 'opt_within', gaus_delta0 - gaus_delta7,
+                                   ifelse(opt_relation_to_data == 'opt_after', lin_delta_pos0 - lin_delta_pos7,
+                                          ifelse(opt_relation_to_data == 'opt_before', lin_delta_neg0 - lin_delta_neg7,
                                                  ifelse(opt_relation_to_data == 'unclear', 0, "HELP ME"))))),
-    delta_yield_percent = delta_yield_corrected/trial_yield*100
-  )
-
-daysoff = 5
-abs_yield_change_3day <- abs_yield_change %>%
-  mutate(
-    # for quadratic models 
-    gaus_delta7 = exp(beta0_gau + beta1_gau * (mu) + beta2_gau * (mu)^2) -
-      exp(beta0_gau + beta1_gau * (mu + daysoff) + beta2_gau * (mu + daysoff)^2),
-    # for linear models - positive slope
-    lin_delta_pos = exp(beta0_lm + beta1_lm * last_flow) - 
-      exp(beta0_lm + beta1_lm * (last_flow-daysoff)),
-    # for linear models - negative slope
-    lin_delta_neg = exp(beta0_lm + beta1_lm * first_flow) - 
-      exp(beta0_lm + beta1_lm * (first_flow+daysoff)),
-    # new column that combines the previous columns based on whether that 
-    # trial has an optimum before, after, within, or not at all
-    delta_yield_corrected = as.numeric(ifelse(opt_relation_to_data == 'opt_within', gaus_delta7,
-                                              ifelse(opt_relation_to_data == 'opt_after', lin_delta_pos,
-                                                     ifelse(opt_relation_to_data == 'opt_before', lin_delta_neg,
+    delta_yield_pct = as.numeric(ifelse(opt_relation_to_data == 'opt_within', gaus_delta_pct,
+                                              ifelse(opt_relation_to_data == 'opt_after', lin_delta_pos_pct,
+                                                     ifelse(opt_relation_to_data == 'opt_before', lin_delta_neg_pct,
                                                             ifelse(opt_relation_to_data == 'unclear', 0, "HELP ME"))))),
-    delta_yield_percent = delta_yield_corrected/trial_yield*100
-  )
+    delta_yield_pct = delta_yield_pct*100
+    )
+
+# bootstrap confidence intervals around the mean
+library(boot)
+
+# Bootstrap function to calculate median
+median_boot <- function(data, indices) {
+  sample_data <- data[indices]
+  return(median(sample_data, na.rm = TRUE))
+}
+
+# Run bootstrap
+set.seed(123)
+boot_results <- boot(
+  data = abs_yield_change %>% filter(opt_relation_to_data != 'unclear') %>% .$delta_yield_pct,
+  statistic = median_boot,
+  R = 10000
+)
+
+# Get 95% CI using percentile method
+boot.ci(boot_results, type = "perc")
+boot_ci <- boot.ci(boot_results, type = "perc")$perc[4:5]
+
+
+# daysoff = 5
+# dec_yield_fn <- function(daysoff){
+# out <- abs_yield_change %>%
+#   mutate(
+#     # for quadratic models 
+#     gaus_delta7 = exp(beta0_gau + beta1_gau * (mu) + beta2_gau * (mu)^2) -
+#       exp(beta0_gau + beta1_gau * (mu + daysoff) + beta2_gau * (mu + daysoff)^2),
+#     # for linear models - positive slope
+#     lin_delta_pos = exp(beta0_lm + beta1_lm * last_flow) - 
+#       exp(beta0_lm + beta1_lm * (last_flow-daysoff)),
+#     # for linear models - negative slope
+#     lin_delta_neg = exp(beta0_lm + beta1_lm * first_flow) - 
+#       exp(beta0_lm + beta1_lm * (first_flow+daysoff)),
+#     # new column that combines the previous columns based on whether that 
+#     # trial has an optimum before, after, within, or not at all
+#     delta_yield_corrected = as.numeric(ifelse(opt_relation_to_data == 'opt_within', gaus_delta7,
+#                                               ifelse(opt_relation_to_data == 'opt_after', lin_delta_pos,
+#                                                      ifelse(opt_relation_to_data == 'opt_before', lin_delta_neg,
+#                                                             ifelse(opt_relation_to_data == 'unclear', 0, "HELP ME"))))),
+#     delta_yield_pct = delta_yield_corrected/trial_yield*100
+#   )
+#     out$delta_yield_pct
+# }
+# dec_yield_fn(1)
 
 # summary stats - average decrease in yield 
+abs_yield_change %>% filter(opt_relation_to_data != 'unclear') %>%
+  summarise(mean_abs = mean(delta_yield_corrected, na.rm = T),
+            mean_pct = mean(delta_yield_pct, na.rm = T),
+            median_pct = median(delta_yield_pct))
+median_yield_change <- as.numeric(abs_yield_change %>% filter(opt_relation_to_data != 'unclear') %>%
+  summarise(median_pct = median(delta_yield_pct)))
 abs_yield_change %>%
-  summarise(mean_abs = mean(delta_yield_corrected, na.rm = T),
-            mean_pct = mean(delta_yield_percent, na.rm = T))
+  group_by(opt_relation_to_data) %>%
+  summarise(n = n()) %>%
+  ungroup() %>%
+  mutate(proportion = n / sum(n))
 
-abs_yield_change_3day %>%
-  summarise(mean_abs = mean(delta_yield_corrected, na.rm = T),
-            mean_pct = mean(delta_yield_percent, na.rm = T))
+# abs_yield_change_3day %>%
+#   summarise(mean_abs = mean(delta_yield_corrected, na.rm = T),
+#             mean_pct = mean(delta_yield_pct, na.rm = T))
 
 
 ggplot(abs_yield_change %>% filter(opt_relation_to_data != 'unclear'), 
-       aes(x = delta_yield_percent)) +
-  geom_histogram(bins = 32) +
-  geom_vline(xintercept = 21.78, color = 'cornflowerblue', linetype = 2) +
-  annotate('text', x = 25, y = 30, hjust = 0, label = "22% average decrease in yield", color = 'cornflowerblue') +
-  labs(x = "Percent decrease in yield\nwith 7 day shift from optimum in flowering", y = "Number of trials") +
-  theme_bw() +
+       aes(x = delta_yield_pct)) +
+  geom_histogram(bins = 32, fill = 'royalblue', alpha = 0.6) +
+  geom_vline(xintercept = median_yield_change, color = 'black', linetype = 5, size = 0.7) +
+  annotate('text', x = median_yield_change + 4, y = 25, hjust = 0, label = paste0(round(median_yield_change), "% median decrease in yield"), 
+           color = 'black', size = 4) +
+  annotate("rect", xmin = boot_ci[1], xmax = boot_ci[2], ymin = -Inf, ymax = Inf,
+           fill = "grey50", alpha = 0.4) +
+  labs(x = "Percent decrease in yield with\n7 day shift from optimal flowering", y = "Number of trials") +
+  theme_bw(base_size = 16) +
   theme(panel.grid = element_blank())
 
-ggplot(abs_yield_change, aes(y = delta_yield_percent, x = opt_relation_to_data)) +
+ggsave(paste0(figure_filepath,"/county/yld_dec_7_days.png"),
+       width = 6.5, height = 5)
+
+# Checking that change in yield does not depend on group
+ggplot(abs_yield_change, aes(y = delta_yield_pct, x = opt_relation_to_data)) +
   geom_boxplot()
 
-lm(delta_yield_percent~ opt_relation_to_data, 
+lm(delta_yield_pct~ opt_relation_to_data, 
    data = abs_yield_change %>% filter(opt_relation_to_data != 'unclear')) %>%
   emmeans::emmeans(pairwise~opt_relation_to_data)
 
