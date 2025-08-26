@@ -638,21 +638,33 @@ orchaRd::mod_results(state_Year_r2_allcounty2, mod = 'Year_sc',
   theme(panel.grid = element_blank())
 
 ## State figure
-orchaRd::orchard_plot(state_Year_r2_allcounty2,
+r2_state_plot <- orchaRd::orchard_plot(state_Year_r2_allcounty2,
                       mod = 'State', group = 'group', 
                       xlab = bquote(R^2), angle = 0) +
-  labs(ylab = "State") +
+  labs(x = "State") +
   theme_bw(base_size = 16) +
-  guides(size = guide_legend(position = 'inside')) +
+  guides(size = guide_legend(position = 'inside', title = "Precision (1/SE)")) +
   theme(panel.grid = element_blank(),
-        legend.position = "right",
+        legend.position = "none", # change this to "inside" to replace the precision scale legend
         legend.direction = 'horizontal',
         legend.position.inside = c(0.25,0.035),
-        # legend.justification.inside = c('left','bottom'),
+        legend.justification.inside = c('left','bottom'),
         legend.title = element_text(size=12), 
         legend.text = element_text(size=10),
         legend.background = element_blank()
-  )
+  ) 
+# remove vertical line
+r2_state_plot <- gginnards::delete_layers(r2_state_plot, match_type = "GeomHline")
+# remove the sample size annotations from plot
+r2_state_plot <- gginnards::delete_layers(r2_state_plot, match_type = "GeomText")
+  
+# add vertical line and CI at mean
+r2_state_plot <- r2_state_plot +
+  geom_hline(yintercept = 0.089, linetype = 2, linewidth = 0.7) +
+  annotate("rect", ymin = 0.0514, ymax = 0.1264, xmin = -Inf, xmax = Inf,
+           fill = "grey50", alpha = 0.4) 
+r2_state_plot
+
 ggsave(paste0(figure_filepath,"/county/state_r2_county_unadj.png"),
        width = 6.5, height = 5)
 

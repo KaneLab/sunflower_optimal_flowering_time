@@ -1311,20 +1311,26 @@ abs_yield_change %>%
 #             mean_pct = mean(delta_yield_pct, na.rm = T))
 
 
-ggplot(abs_yield_change %>% filter(opt_relation_to_data != 'unclear'), 
+yld_dec_plt <- ggplot(abs_yield_change %>% filter(opt_relation_to_data != 'unclear'), 
        aes(x = delta_yield_pct)) +
   geom_histogram(bins = 32, fill = 'royalblue', alpha = 0.6) +
   geom_vline(xintercept = median_yield_change, color = 'black', linetype = 5, size = 0.7) +
-  annotate('text', x = median_yield_change + 4, y = 25, hjust = 0, label = paste0(round(median_yield_change), "% median decrease in yield"), 
-           color = 'black', size = 4) +
+  # annotate('text', x = median_yield_change + 4, y = 25, hjust = 0, label = paste0(round(median_yield_change), "% median decrease in yield"), 
+  #          color = 'black', size = 4) +
   annotate("rect", xmin = boot_ci[1], xmax = boot_ci[2], ymin = -Inf, ymax = Inf,
            fill = "grey50", alpha = 0.4) +
   labs(x = "Percent decrease in yield with\n7 day shift from optimal flowering", y = "Number of trials") +
   theme_bw(base_size = 16) +
   theme(panel.grid = element_blank())
+yld_dec_plt
 
 ggsave(paste0(figure_filepath,"/county/yld_dec_7_days.png"),
        width = 6.5, height = 5)
+
+ggarrange(r2_state_plot, yld_dec_plt)
+
+ggsave(paste0(figure_filepath,"/county/importance_2panel.png"),
+       width = 10, height = 4)
 
 # Checking that change in yield does not depend on group
 ggplot(abs_yield_change, aes(y = delta_yield_pct, x = opt_relation_to_data)) +
