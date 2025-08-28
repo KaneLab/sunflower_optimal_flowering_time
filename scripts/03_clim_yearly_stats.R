@@ -24,10 +24,10 @@ path2climatedata <- "data/"
 
 # # Daymet daily data
 # 
-# #Pogoda server path
-# if(dir.exists("/home/elizaic/sunflower_geospatial/Sunflower_Geospatial/data/")){
-#   path2climatedata <- "/home/elizaic/sunflower_geospatial/Sunflower_Geospatial/data/"
-# }
+#Pogoda server path
+if(dir.exists("/home/elizaic/sunflower_geospatial/Sunflower_Geospatial/data/")){
+  path2climatedata <- "/home/elizaic/sunflower_geospatial/Sunflower_Geospatial/data/"
+}
 # 
 # #Laptop local path
 # if(dir.exists("C:/Users/elcl6271/Local Documents")){
@@ -76,6 +76,28 @@ deriv_data <- deriv_data %>%
 
 ## List of locations that are in the downstream analyses
 R2_indata <- read.csv(paste0(deriv_data_filepath,"/R2_indata.csv"))
+
+
+# Check that average summer temps for all years are similar to summer temps
+# for 1980-2000, which is similar to the 'historical' temperatures that 
+# the climate models compare to.
+# For both max and min, the temperatures are similar for both sets of years.
+# This means that it's not a problem to add the future anomaly to all 
+# years of data, even though some of it is not 'historical'.
+
+# Look at historical average summer temperatures
+clim_data %>% 
+  filter(year < 2001 & yday > 152 & yday < 243) %>%
+  distinct() %>%
+  summarise(tamxdegc_Ave = mean(tmaxdegc),
+            tmindegc_ave = mean(tmindegc))
+
+# All years summer average temperature
+clim_data %>% 
+  filter(yday > 152 & yday < 243) %>%
+  distinct() %>%
+  summarise(tamxdegc_Ave = mean(tmaxdegc),
+            tmindegc_ave = mean(tmindegc))
 
 
 # Prepare data ----------------------------------------------------------------
@@ -278,10 +300,17 @@ gdd_modave_calc <- function(site, climate.dat){
 }
 
 ## Future GDD - upper threshold ---------------------------------------------
+# Can choose between an average of RCP 4.5 and 8.5 scenarios, or each scenario by itself.
+# Could update code to have all of these run. For now, uncomment the appropriate line below
+# and leave the other two commented out.
 
 gdd_mod_future_calc <- function(site, climate.dat){
-  # projected increases in min and max temperatures
-  temp_increases <- matrix(c(2.918611, 3.3522), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
+  # projected increases in min and max temperatures (average of RCP 4.5 and RCP 8.5)
+  # temp_increases <- matrix(c(2.918611, 3.3522), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
+  # projected increases in min and max temperatures (RCP 8.5)
+  temp_increases <- matrix(c(3.4389, 3.9339), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
+  # projected increases in min and max temperatures (RCP 4.5)
+  # temp_increases <- matrix(c(2.4411, 2.8861), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
   
   # climate data for site
   clim_site <- climate.dat %>% filter(location %in% site$location &
