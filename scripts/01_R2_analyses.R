@@ -592,6 +592,20 @@ orchaRd::caterpillars(ave_r2_allcounty2, mod = '1', group = 'group', xlab = "R2"
 #   ggplot(aes(y = pred, x = yi)) +
 #   geom_point( alpha = 0.3)
 
+# global average, excluding Western Colorado & Coastal Texas to check for high leverage
+ave_r2_allcounty2_leverage <- rma.mv(yi ~ n_site_yr_sc + n_site_yr2_sc, vi, 
+                            random = ~ 1 | group,
+                            data = R2_allcounty_data %>% 
+                              filter(group != "Montezuma_CO") %>%
+                              filter(group != "Nueces_TX"))
+summary(ave_r2_allcounty2_leverage)
+# # dot plot histogram
+# ggplot() +
+#   geom_dotplot(data = R2_allcounty_data, aes(x = yi, fill = group)) +
+#   geom_dotplot(data = R2_allcounty_data %>% 
+#                  filter(group == "Montezuma_CO") %>%
+#                  filter(group == "Nueces_TX"), 
+#                aes(x = yi), color = 'red') 
 
 
 ## Combine Year and State Effects

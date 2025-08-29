@@ -108,10 +108,11 @@ year_mult <- ggplot(data = year_multi_predict %>%
   scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
   labs(y = "Predicted probability", color = "Flowering was:", x = "Year") +
   theme_bw(base_size = 16) +
-  theme(legend.position = 'top',
+  theme(legend.position = 'right',
         panel.grid = element_blank())
 year_mult
-
+ggsave(paste0(path2plots, "year_mult.png"),
+       width = 8, height = 7)
 
 ## By Location ---------------------------------------------------------------
 # Fit multinomial regression model to see how the proportion of 
@@ -168,8 +169,8 @@ county_mult
 
 ggarrange(year_mult, county_mult, ncol = 2, labels = 'AUTO', widths = c(1, 1.8),
           common.legend = T, legend = 'top')
-ggsave(paste0(path2plots, "year_county_mult.png"), 
-       width = 12, height = 7)
+# ggsave(paste0(path2plots, "year_county_mult.png"), 
+#        width = 12, height = 7)
 
 # look at whether there is a trend with sample size
 ggplot(data = county_multi_predict %>%
