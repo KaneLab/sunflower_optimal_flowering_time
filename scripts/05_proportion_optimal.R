@@ -56,9 +56,10 @@ optim_clim_county_multi <- optim_clim_county %>%
   add_count(group)
 
 # Fit model
-year_multi_mod <- vglm(opt_relation_to_data ~ Year, family = multinomial(refLevel = 1), 
+year_multi_mod <- vglm(opt_relation_to_data ~ Year, family = multinomial(refLevel = 1, parallel = FALSE), 
                        data = optim_clim_county_multi)
 summary(year_multi_mod)
+anova(year_multi_mod)
 # Likelihood ratio test
 null_multi_mod <- vglm(opt_relation_to_data ~ 1, multinomial(refLevel = 1), 
                        data = optim_clim_county_multi)
@@ -68,6 +69,43 @@ lrtest(year_multi_mod, null_multi_mod)
 year_multi_predict <- data.frame(Year = 1980:2023, 
                                  predict(year_multi_mod, newdata = data.frame(Year = 1980:2023),
                                          type = 'response'))
+
+
+#########################
+year_multi_predict %>% 
+  mutate(across(-Year, ~ c(NA, diff(.) / diff(Year)[1]), .names = "slope_{.col}")) %>% 
+  select(Year, starts_with("slope_")) %>%
+  pivot_longer(-Year, names_to = "Category", values_to = "Slope")
+
+###
+# Extract coefficients and standard errors from summary
+coef_summary_vg <- summary(year_multi_mod)@coef3  # matrix of Estimate, Std. Error, z value
+
+# Convert to data frame
+ci_df_vg <- as.data.frame(coef_summary_vg)
+
+# Keep only the Year slopes (not intercepts)
+ci_df_vg <- ci_df_vg %>%
+  rownames_to_column(var = "Term") %>%
+  filter(grepl("^Year", Term)) %>%   # keep only Year coefficients
+  rename(
+    Estimate = Estimate,
+    StdError = `Std. Error`
+  )
+
+# Calculate 95% confidence intervals (on log-odds scale)
+ci_df_vg <- ci_df_vg %>%
+  mutate(
+    CI_lower = Estimate - 1.96 * StdError,
+    CI_upper = Estimate + 1.96 * StdError,
+    
+    # Also compute odds ratio and its CI
+    OR = exp(Estimate),
+    OR_lower = exp(CI_lower),
+    OR_upper = exp(CI_upper)
+  )
+##################
+
 
 # create dataframe that totals the number of sites that are 
 # optimal, early, late, or unclear by year.
