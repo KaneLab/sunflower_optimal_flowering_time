@@ -456,6 +456,35 @@ ggplot(data = predict_frostxgdd,
         panel.grid = element_blank())
 
 
+## By Climate BRMS ----------------------------------------------------------
+library(brms)
+library(tidybayes)        # Manipulate Stan results in tidy ways
+
+
+# GDD_multi_mod <- vglm(opt_relation_to_data ~ GDD_mod_sitemean + GDD_anomaly + 
+#                         tot_precip_sitemean + precip_anomaly + frost_anomaly, 
+#                       multinomial(refLevel = 4), 
+#                       data = optim_clim_county_multi %>% filter(!is.na(GDD_anomaly)))
+
+multi_mod_brm <- brm(
+  bf(opt_relation_to_data ~ 0 + GDD_mod_sitemean + GDD_anomaly + 
+       tot_precip_sitemean + precip_anomaly + frost_anomaly + (1 | county_state)),
+  data = optim_clim_county_multi %>% filter(!is.na(GDD_anomaly)),
+  family = categorical(refcat = "unclear"),
+  prior = c(
+    prior(normal(0, 5), class = b, dpar = muoptafter),
+    prior(normal(0, 5), class = b, dpar = muoptbefore),
+    prior(normal(0, 5), class = b, dpar = muoptwithin),
+    prior(exponential(1), class = sd, dpar = muoptafter),
+    prior(exponential(1), class = sd, dpar = muoptbefore),
+    prior(exponential(1), class = sd, dpar = muoptwithin)
+  ),
+  chains = 4, cores = 4, iter = 2000, seed = 5
+)
+
+prior_summary(multi_mod_brm)
+summary(multi_mod_brm)
+
 
 
 
