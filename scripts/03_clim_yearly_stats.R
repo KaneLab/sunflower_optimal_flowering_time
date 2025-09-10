@@ -308,9 +308,9 @@ gdd_mod_future_calc <- function(site, climate.dat){
   # projected increases in min and max temperatures (average of RCP 4.5 and RCP 8.5)
   # temp_increases <- matrix(c(2.918611, 3.3522), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
   # projected increases in min and max temperatures (RCP 8.5)
-  temp_increases <- matrix(c(3.4389, 3.9339), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
+  # temp_increases <- matrix(c(3.4389, 3.9339), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
   # projected increases in min and max temperatures (RCP 4.5)
-  # temp_increases <- matrix(c(2.4411, 2.8861), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
+  temp_increases <- matrix(c(2.4411, 2.8861), nrow = 2, ncol = 1, dimnames = list(c("min", "max"), c("increase_C")))
   
   # climate data for site
   clim_site <- climate.dat %>% filter(location %in% site$location &
