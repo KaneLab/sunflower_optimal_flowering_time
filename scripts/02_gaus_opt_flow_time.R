@@ -1153,6 +1153,7 @@ emmeans::emmeans(mod_perf, ~opt_relation_to_data, type = 'response') %>% as.data
               alpha = 0.2, color = 'grey50', shape = 16, position = position_jitter(width = 0.1)) +
   geom_pointrange(aes(x = opt_relation_to_data, y = emmean, ymin = lower.CL, ymax = upper.CL), 
                   size = .8) +
+  geom_hline(aes(yintercept = emmean[1]), linetype = 2, size = .5) +
   # add confidence intervals in text
   # geom_text(aes(x = opt_relation_to_data, y = 100, label = paste0("[",round(lower.CL,0),", ",round(upper.CL,0),"]"))) +
   geom_text(aes(x = opt_relation_to_data, y = 300, label = percent_diff2)) +
