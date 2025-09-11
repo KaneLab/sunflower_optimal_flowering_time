@@ -458,13 +458,7 @@ ggplot(data = predict_frostxgdd,
 
 ## By Climate BRMS ----------------------------------------------------------
 library(brms)
-library(tidybayes)        # Manipulate Stan results in tidy ways
-
-
-# GDD_multi_mod <- vglm(opt_relation_to_data ~ GDD_mod_sitemean + GDD_anomaly + 
-#                         tot_precip_sitemean + precip_anomaly + frost_anomaly, 
-#                       multinomial(refLevel = 4), 
-#                       data = optim_clim_county_multi %>% filter(!is.na(GDD_anomaly)))
+library(tidybayes)
 
 multi_mod_brm <- brm(
   bf(opt_relation_to_data ~ 0 + GDD_mod_sitemean + GDD_anomaly + 
@@ -479,12 +473,95 @@ multi_mod_brm <- brm(
     prior(exponential(1), class = sd, dpar = muoptbefore),
     prior(exponential(1), class = sd, dpar = muoptwithin)
   ),
-  chains = 4, cores = 4, iter = 2000, seed = 5
+  chains = 4, cores = 4, iter = 2000, seed = 5,
+  file = "multi_mod_brm" # in top dir of project...
 )
+
+# library(bayesplot)
+# mcmc_trace(multi_mod_brm)
+# library(shinystan)
+# launch_shinystan(multi_mod_brm)
 
 prior_summary(multi_mod_brm)
 summary(multi_mod_brm)
 
+# NOTE: Here's some code for plotting the conditional/marginal effects of the 
+# multinomial you fit. re_formula = NA marginalizes over the group effects.
+# This is probably the best way to start thinking about what this models says
+# within it's set of assumptions. Plotting bayesian multinomials is a tad tricky!
+
+
+# extract conditional effects
+ce_multi <- brms::conditional_effects(multi_mod_brm, categorical = TRUE,
+                                      re_formula = NA)
+
+### ---- GDD site mean ----
+gddmean_cond <- ce_multi$`GDD_mod_sitemean:cats__` |>
+  ggplot() +
+  geom_line(aes(GDD_mod_sitemean, estimate__, color = cats__)) +
+  ggdist::geom_lineribbon(
+    aes(GDD_mod_sitemean, y = estimate__,
+        ymin = lower__, ymax = upper__,
+        color = cats__, fill = cats__),
+    alpha = 0.6
+  ) +
+  scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
+  scale_fill_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
+  labs(y = "Predicted probability", color = "Flowering was:", x = "GDD site mean") +
+  theme_bw() +
+  theme(
+    base_size = 16,
+    panel.grid = element_blank(),
+    legend.position = 'top',
+    axis.title.x = element_text(size = 12),
+    axis.text = element_text(size = 12)
+  ) +
+  coord_cartesian(ylim = c(0, 1))
+
+### ---- GDD anomaly ----
+# gddanom_cond <- ce_multi$`GDD_anomaly:cats__` |>
+#   ggplot() +
+#   geom_line(aes(GDD_anomaly, estimate__, color = cats__)) +
+#   ggdist::geom_lineribbon(
+#     aes(GDD_anomaly, y = estimate__,
+#         ymin = lower__, ymax = upper__,
+#         color = cats__, fill = cats__),
+#     alpha = 0.5
+#   ) +
+#   theme(
+#     legend.position = 'none',
+#     axis.title.x = element_text(size = 12),
+#     axis.text = element_text(size = 12)
+#   ) +
+#   coord_cartesian(ylim = c(0, 1)) +
+#   labs(x = expression(Delta~"GDD anomaly"), y = NULL)
+
+### ---- frost anomaly ----
+frostanom_cond <- ce_multi$`frost_anomaly:cats__` |>
+  ggplot() +
+  geom_line(aes(frost_anomaly, estimate__, color = cats__)) +
+  ggdist::geom_lineribbon(
+    aes(frost_anomaly, y = estimate__,
+        ymin = lower__, ymax = upper__,
+        color = cats__, fill = cats__),
+    alpha = 0.6
+  ) +
+  theme(
+    base_size = 16,
+    panel.grid = element_blank(),
+    legend.position = 'top',
+    axis.title.x = element_text(size = 12),
+    axis.text = element_text(size = 12)
+  ) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(x = expression(Delta~"Frost anomaly"), y = NULL)
+
+# ---- arrange them
+mnm_multi_fits <- ggpubr::ggarrange(
+  gddmean_cond,
+  frostanom_cond, ncol = 2, nrow = 1,
+  labels = c('a','b')
+)
 
 
 
