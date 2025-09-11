@@ -571,9 +571,7 @@ gddmean_cond <- ce_multi$`GDD_mod_sitemean:cats__` |>
   # guides(color = 'none') +
   theme_bw(base_size = 16) +
   theme(
-    panel.grid = element_blank(),
-    axis.title.x = element_text(size = 12),
-    axis.text = element_text(size = 12)
+    panel.grid = element_blank()
   ) +
   coord_cartesian(ylim = c(0, 1))
 gddmean_cond
@@ -597,9 +595,7 @@ frostanom_cond <- ce_multi$`frost_anomaly:cats__` |>
   guides(fill = 'none') +
   theme_bw(base_size = 16) +
   theme(
-    panel.grid = element_blank(),
-    axis.title.x = element_text(size = 12),
-    axis.text = element_text(size = 12)
+    panel.grid = element_blank()
   ) +
   coord_cartesian(ylim = c(0, 1))
 frostanom_cond
