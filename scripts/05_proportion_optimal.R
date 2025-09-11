@@ -567,7 +567,7 @@ gddmean_cond <- ce_multi$`GDD_mod_sitemean:cats__` |>
   scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50'),
                      labels = c("suitable", "early", "late", "unclear")) +
   # scale_fill_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
-  labs(y = "Predicted probability", color = "Flowering was:   ", x = "GDD site mean") +
+  labs(y = "Predicted probability", color = "Flowering was:   ", x = "GDD site mean") + # need spaces for saving fig
   # guides(color = 'none') +
   theme_bw(base_size = 16) +
   theme(
@@ -593,7 +593,7 @@ frostanom_cond <- ce_multi$`frost_anomaly:cats__` |>
   scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50'),
                      labels = c("suitable", "early", "late", "unclear")) +
   # scale_fill_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
-  labs(y = "", color = "Flowering was:   ", x = "First frost anomaly") +
+  labs(y = "", color = "Flowering was:   ", x = "First frost anomaly") + # need spaces for saving fig
   guides(fill = 'none') +
   theme_bw(base_size = 16) +
   theme(
