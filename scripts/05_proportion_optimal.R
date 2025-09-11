@@ -149,6 +149,60 @@ year_mult <- ggplot(data = year_multi_predict %>%
   theme(legend.position = 'right',
         panel.grid = element_blank())
 year_mult
+
+
+## By Year BRMS ----------------------------------------------
+yr_mod_brm <- brm(
+  bf(opt_relation_to_data ~ Year + (1 | county_state)),
+  data = optim_clim_county_multi,
+  family = categorical(refcat = "unclear"),
+  prior = c(
+    prior(normal(0, 5), class = b, dpar = muoptafter),
+    prior(normal(0, 5), class = b, dpar = muoptbefore),
+    prior(normal(0, 5), class = b, dpar = muoptwithin),
+    prior(exponential(1), class = sd, dpar = muoptafter),
+    prior(exponential(1), class = sd, dpar = muoptbefore),
+    prior(exponential(1), class = sd, dpar = muoptwithin)
+  ),
+  adapt_delta = 0.9,
+  chains = 4, cores = 4, iter = 2000, seed = 5,
+  file = "derived_data/yr_mod_brm" 
+)
+summary(yr_mod_brm)
+
+# extract conditional effects
+ce_yr <- brms::conditional_effects(yr_mod_brm, categorical = TRUE,
+                                      re_formula = NA)
+
+ce_yr$`Year:cats__` |>
+  ggplot() +
+  geom_jitter(data = proportion_optima %>%
+                mutate(flowering_was = factor(flowering_was,
+                                              labels = c("opt_within", "opt_after", "opt_before", "unclear"),
+                                              levels = c("suitable", "early", "late", "unclear"))), 
+              aes(x = Year, y = prop, color = flowering_was), 
+              alpha = 0.2, size = 2) +
+  geom_ribbon(
+    aes(Year, y = estimate__,
+        ymin = lower__, ymax = upper__,
+        group = cats__),
+    # color = cats__, fill = cats__),
+    alpha = 0.1
+  ) +
+  geom_line(aes(Year, estimate__, color = cats__),
+            linetype = 2, linewidth = 1.2) +
+  scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50'),
+                     labels = c("suitable", "early", "late", "unclear")) +
+  # scale_fill_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
+  labs(y = "Predicted probability", color = "Flowering was:", x = "GDD site mean") +
+  # guides(color = 'none') +
+  theme_bw(base_size = 16) +
+  theme(
+    panel.grid = element_blank(),
+    axis.title.x = element_text(size = 12),
+    axis.text = element_text(size = 12)
+  ) +
+  coord_cartesian(ylim = c(0, 1))
 ggsave(paste0(path2plots, "year_mult.png"),
        width = 8, height = 7)
 
@@ -412,8 +466,7 @@ frostmulti_plot <- data.frame(fit.eff2$model.matrix, fit.eff2$prob, fit.eff2$low
 
 ggarrange(gddmulti_plot, frostmulti_plot,
   ncol = 2, labels = 'AUTO', common.legend = T)
-ggsave(paste0(path2plots, "climate_mult_full.png"), 
-       width = 12*.75, height = 7*.75)
+
 
 
 
@@ -461,20 +514,21 @@ library(brms)
 library(tidybayes)
 
 multi_mod_brm <- brm(
-  bf(opt_relation_to_data ~ 0 + GDD_mod_sitemean + GDD_anomaly + 
+  bf(opt_relation_to_data ~ GDD_mod_sitemean + GDD_anomaly + 
        tot_precip_sitemean + precip_anomaly + frost_anomaly + (1 | county_state)),
   data = optim_clim_county_multi %>% filter(!is.na(GDD_anomaly)),
-  family = categorical(refcat = "unclear"),
+  family = categorical(refcat = "opt_within"),
   prior = c(
     prior(normal(0, 5), class = b, dpar = muoptafter),
     prior(normal(0, 5), class = b, dpar = muoptbefore),
-    prior(normal(0, 5), class = b, dpar = muoptwithin),
+    prior(normal(0, 5), class = b, dpar = muunclear),
     prior(exponential(1), class = sd, dpar = muoptafter),
     prior(exponential(1), class = sd, dpar = muoptbefore),
-    prior(exponential(1), class = sd, dpar = muoptwithin)
+    prior(exponential(1), class = sd, dpar = muunclear)
   ),
   chains = 4, cores = 4, iter = 2000, seed = 5,
-  file = "multi_mod_brm" # in top dir of project...
+  file = "derived_data/multi_mod_brm",
+  file_refit = 'on_change'
 )
 
 # library(bayesplot)
@@ -485,11 +539,14 @@ multi_mod_brm <- brm(
 prior_summary(multi_mod_brm)
 summary(multi_mod_brm)
 
+
 # NOTE: Here's some code for plotting the conditional/marginal effects of the 
 # multinomial you fit. re_formula = NA marginalizes over the group effects.
 # This is probably the best way to start thinking about what this models says
 # within it's set of assumptions. Plotting bayesian multinomials is a tad tricky!
+# 
 
+# Plotting 
 
 # extract conditional effects
 ce_multi <- brms::conditional_effects(multi_mod_brm, categorical = TRUE,
@@ -498,71 +555,65 @@ ce_multi <- brms::conditional_effects(multi_mod_brm, categorical = TRUE,
 ### ---- GDD site mean ----
 gddmean_cond <- ce_multi$`GDD_mod_sitemean:cats__` |>
   ggplot() +
-  geom_line(aes(GDD_mod_sitemean, estimate__, color = cats__)) +
-  ggdist::geom_lineribbon(
+  geom_ribbon(
     aes(GDD_mod_sitemean, y = estimate__,
         ymin = lower__, ymax = upper__,
-        color = cats__, fill = cats__),
-    alpha = 0.6
+        group = cats__),
+        # color = cats__, fill = cats__),
+    alpha = 0.1
   ) +
-  scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
-  scale_fill_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
+  geom_line(aes(GDD_mod_sitemean, estimate__, color = cats__), 
+            linetype = 2, linewidth = 1.2) +
+  scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50'),
+                     labels = c("suitable", "early", "late", "unclear")) +
+  # scale_fill_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
   labs(y = "Predicted probability", color = "Flowering was:", x = "GDD site mean") +
-  theme_bw() +
+  # guides(color = 'none') +
+  theme_bw(base_size = 16) +
   theme(
-    base_size = 16,
     panel.grid = element_blank(),
-    legend.position = 'top',
     axis.title.x = element_text(size = 12),
     axis.text = element_text(size = 12)
   ) +
   coord_cartesian(ylim = c(0, 1))
-
-### ---- GDD anomaly ----
-# gddanom_cond <- ce_multi$`GDD_anomaly:cats__` |>
-#   ggplot() +
-#   geom_line(aes(GDD_anomaly, estimate__, color = cats__)) +
-#   ggdist::geom_lineribbon(
-#     aes(GDD_anomaly, y = estimate__,
-#         ymin = lower__, ymax = upper__,
-#         color = cats__, fill = cats__),
-#     alpha = 0.5
-#   ) +
-#   theme(
-#     legend.position = 'none',
-#     axis.title.x = element_text(size = 12),
-#     axis.text = element_text(size = 12)
-#   ) +
-#   coord_cartesian(ylim = c(0, 1)) +
-#   labs(x = expression(Delta~"GDD anomaly"), y = NULL)
+gddmean_cond
 
 ### ---- frost anomaly ----
 frostanom_cond <- ce_multi$`frost_anomaly:cats__` |>
   ggplot() +
-  geom_line(aes(frost_anomaly, estimate__, color = cats__)) +
-  ggdist::geom_lineribbon(
+  geom_ribbon(
     aes(frost_anomaly, y = estimate__,
         ymin = lower__, ymax = upper__,
-        color = cats__, fill = cats__),
-    alpha = 0.6
+        group = cats__),
+    # color = cats__, fill = cats__),
+    alpha = 0.1
   ) +
+  geom_line(aes(frost_anomaly, estimate__, color = cats__), 
+            linetype = 2, linewidth = 1.2) +
+  scale_color_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50'),
+                     labels = c("suitable", "early", "late", "unclear")) +
+  # scale_fill_manual(values = c('forestgreen', 'darkslategray3', 'orange', 'grey50')) +
+  labs(y = "", color = "Flowering was:", x = "First frost anomaly") +
+  guides(fill = 'none') +
+  theme_bw(base_size = 16) +
   theme(
-    base_size = 16,
     panel.grid = element_blank(),
-    legend.position = 'top',
     axis.title.x = element_text(size = 12),
     axis.text = element_text(size = 12)
   ) +
-  coord_cartesian(ylim = c(0, 1)) +
-  labs(x = expression(Delta~"Frost anomaly"), y = NULL)
+  coord_cartesian(ylim = c(0, 1))
+frostanom_cond
 
 # ---- arrange them
-mnm_multi_fits <- ggpubr::ggarrange(
+ggpubr::ggarrange(
   gddmean_cond,
   frostanom_cond, ncol = 2, nrow = 1,
+  common.legend = TRUE,
   labels = c('a','b')
 )
 
+ggsave(paste0(path2plots, "climate_mult_full.png"), 
+       width = 12*.75, height = 7*.75)
 
 
 # Pie chart -----------------------------------------------------------------
