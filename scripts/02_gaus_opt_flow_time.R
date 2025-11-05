@@ -1163,6 +1163,8 @@ emmeans::emmeans(mod_perf, ~opt_relation_to_data, type = 'response') %>% as.data
 
 ggsave(paste0(figure_filepath,"/county/yield_optimum_relationship.png"), width = 6, height = 4, dpi = 300)
 
+ggsave(paste0(figure_filepath,"/county/yield_optimum_relationship.pdf"), 
+       width = 6, height = 4, dpi = 600)
 
 
 
@@ -1328,10 +1330,12 @@ yld_dec_plt
 ggsave(paste0(figure_filepath,"/county/yld_dec_7_days.png"),
        width = 6.5, height = 5)
 
-ggarrange(r2_state_plot, yld_dec_plt)
+# Run code from 01_R2_analyses to get the r2_state_plot 
+# in the global environment - this is just for publicaiton figure
+ggarrange(r2_state_plot, yld_dec_plt, labels = "AUTO")
 
-ggsave(paste0(figure_filepath,"/county/importance_2panel.png"),
-       width = 10, height = 4)
+ggsave(paste0(figure_filepath,"/county/importance_2panel.pdf"),
+       width = 10, height = 4, dpi = 600)
 
 # Checking that change in yield does not depend on group
 ggplot(abs_yield_change, aes(y = delta_yield_pct, x = opt_relation_to_data)) +
