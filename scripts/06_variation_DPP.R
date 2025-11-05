@@ -142,7 +142,10 @@ deriv_data %>%
 
 # ggsave("temp_plots/ec/accessions_2.png", width = 8, height = 6, dpi = 300)
 
-ggsave(paste0(figure_filepath,"/variation_DPP.png"), width = 8, height = 6, dpi = 300)
+ggsave(paste0(figure_filepath,"/variation_DPP.png"), 
+       width = 8, height = 6, dpi = 300)
+ggsave(paste0(figure_filepath,"/variation_DPP.pdf"), 
+       width = 8, height = 6, dpi = 600)
 
 # Both datasets
 # no averaging of genotypes
