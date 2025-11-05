@@ -610,7 +610,9 @@ ggpubr::ggarrange(
 )
 
 ggsave(paste0(path2plots, "climate_mult_full.png"), 
-       width = 12*.75, height = 7*.75)
+       width = 12*.75, height = 7*.75, dpi = 600)
+ggsave(paste0(path2plots, "climate_mult_full.pdf"), 
+       width = 12*.75, height = 7*.75, dpi = 600)
 
 
 # Pie chart -----------------------------------------------------------------

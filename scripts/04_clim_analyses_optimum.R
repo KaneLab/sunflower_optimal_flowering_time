@@ -1985,6 +1985,8 @@ ggarrange(plotlist = regression_plots_dpp, common.legend = T, legend = 'right',
           labels = "AUTO", ncol = 3, nrow = 2)
 ggsave(paste0(path2plots, "DPP_opt_clim.png"), 
        width = 13, height = 8)
+ggsave(paste0(path2plots, "DPP_opt_clim.pdf"), 
+       width = 13, height = 8, dpi = 600)
 
 ## Predictor Residuals -----------------------------------------------------
 
@@ -2364,6 +2366,8 @@ ggplot(data = new_data2_fut_dpp, aes(x = GDD_mod_sitemean,
 
 ggsave(paste0(path2plots, "DPP_future.png"),
        width = 16, height = 6)
+ggsave(paste0(path2plots, "DPP_future.pdf"),
+       width = 16, height = 6, dpi = 600)
 
 
 # quantiles of projected days to flowering in the future
