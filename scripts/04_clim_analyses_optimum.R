@@ -199,7 +199,7 @@ fixed_vs_relative_gdd <- optim_clim_sc %>%
 fixed_vs_relative_gdd
 
 ## Distribution of optimal dates -----------------------------------------------
-optim_clim_sc %>% 
+  optim_clim_sc %>% 
   mutate(combined_mu = ifelse(opt_relation_to_data == 'opt_within', mu,
                               ifelse(opt_relation_to_data == 'opt_after', y2, 
                                      ifelse(opt_relation_to_data == 'opt_before', y3, NA))),
@@ -213,17 +213,20 @@ optim_clim_sc %>%
   # geom_density(aes(x = combined_dpp, y = after_stat(count), fill = opt_relation_to_data), 
   #              alpha = 0.5, bw = 5) +
   # geom_area(aes(y = after_stat(count), fill = opt_relation_to_data), alpha = .75, stat = "bin") +
-  geom_histogram(aes(x = combined_dpp, fill = opt_relation_to_data), position = 'stack', alpha = 0.75) +
+  geom_histogram(aes(x = combined_dpp, fill = opt_relation_to_data), position = 'stack', 
+                 alpha = 0.75, color = 'white', linewidth = 0) +
   # geom_dotplot(aes(x = combined_dpp, fill = opt_relation_to_data), method = "histodot", 
   #              binwidth = 2, stackgroups = T) +
   # scale_fill_manual(values = c('grey50', 'forestgreen')) +
-  scale_fill_brewer(palette = "Dark2", direction = -1) +
+  scale_fill_manual(values = c('orange','darkslategray3','forestgreen',   'grey50')) +
+  # scale_fill_brewer(palette = "Dark2", direction = -1) +
   guides(fill = guide_legend(keywidth = 1.5, label.theme = element_text(size = 10))) +
   labs(x = "Days past planting", y = "Count of trials", fill = "") +
   theme_bw(base_size = 16) +
   theme(panel.grid = element_blank(),
         legend.position = c(0.75, 0.9),
         legend.background = element_blank())
+
 
 if(by_county == TRUE){
   ggsave(paste0(path2plots, "dpp_distribution.png"), width = 5, height = 5)

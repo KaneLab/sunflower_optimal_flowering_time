@@ -12,6 +12,8 @@ library(tidyverse)
 library(ggpmisc)
 library(VGAM)
 library(ggpubr)
+library(brms)
+library(tidybayes)
 
 deriv_data_filepath <- "derived_data"
 figure_filepath <- "figures"
@@ -510,8 +512,7 @@ ggplot(data = predict_frostxgdd,
 
 
 ## By Climate BRMS ----------------------------------------------------------
-library(brms)
-library(tidybayes)
+
 
 multi_mod_brm <- brm(
   bf(opt_relation_to_data ~ GDD_mod_sitemean + GDD_anomaly + 
@@ -605,7 +606,7 @@ ggpubr::ggarrange(
   gddmean_cond,
   frostanom_cond, ncol = 2, nrow = 1,
   common.legend = TRUE,
-  labels = c('a','b')
+  labels = "AUTO"
 )
 
 ggsave(paste0(path2plots, "climate_mult_full.png"), 
