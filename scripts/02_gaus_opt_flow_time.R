@@ -946,7 +946,7 @@ county_in_data %>% distinct(county_state, Year) %>% group_by(county_state) %>%
   summarise(mean = mean(n), median = median(n), sd = sd(n)) # 12.3 years +/- 10.9 years per county
 
 county_in_data %>% count(county_state, Year) %>%
-  summarise(mean = mean(n), median = median(n), sd = sd(n)) # 43 +/-25(sd) hybrids per site-year 
+  summarise(mean = mean(n), median = median(n), sd = sd(n), min = min(n), max = max(n)) # 43 +/-25(sd) hybrids per site-year 
 county_in_data %>% count(Unif_Name) %>% nrow() # 2131 hybrids
 county_in_data %>% count(Year) %>% nrow() # 46 years
 
