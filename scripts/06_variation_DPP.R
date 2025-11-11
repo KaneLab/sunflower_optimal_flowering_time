@@ -109,7 +109,7 @@ deriv_data %>% filter(flower_50pct_days_past_planting <= 58) %>%
 
 # Both datasets
 # average number of days to flowering for each genotype
-deriv_data %>%
+variation_dpp <- deriv_data %>%
   filter(!is.na(flower_50_doy) &
            !is.na(yield_lb_acre) &
            !grepl('irrigated|NO|late|recrop', Location)) %>%
@@ -139,13 +139,57 @@ deriv_data %>%
         legend.position = c(0.75, 0.4),
         legend.title = element_blank()
   )
+variation_dpp
 
 # ggsave("temp_plots/ec/accessions_2.png", width = 8, height = 6, dpi = 300)
 
 ggsave(paste0(figure_filepath,"/variation_DPP.png"), 
        width = 8, height = 6, dpi = 300)
-ggsave(paste0(figure_filepath,"/variation_DPP.pdf"), 
-       width = 8, height = 6, dpi = 600)
+
+
+## This whole thing is just to plot it so that it looks good when saved as a pdf
+# Don't use this one for anything else
+overlap_area <- ggplot_build(variation_dpp)$data[[1]] %>%
+  select(x, y) %>%
+  left_join(
+    ggplot_build(variation_dpp)$data[[2]] %>%
+      select(x, y), 
+    by = "x"
+  ) %>%
+  mutate(overlap = pmin(y.x, y.y))
+
+deriv_data %>%
+  filter(!is.na(flower_50_doy) &
+           !is.na(yield_lb_acre) &
+           !grepl('irrigated|NO|late|recrop', Location)) %>%
+  group_by(Unif_Name) %>%
+  summarise(mean_flower_dpp = mean(flower_50pct_days_past_planting, na.rm = T),
+            sd_flower_dpp = sd(flower_50pct_days_past_planting, na.rm = T)) %>%
+  ggplot() +
+  geom_histogram(aes(x = mean_flower_dpp, fill = "Commercial varieties"),
+                 binwidth = 2, color = '#F4CFB4', linewidth = 0.01, width = 1) +
+  geom_histogram(data = grin_data_summarised, aes(x = mean_obs_val, fill = "USDA accessions"),
+                 binwidth = 2, color = '#BBE2D6', linewidth = 0.01, width = 1) +
+  geom_col(data = overlap_area %>% filter(overlap > 0),
+                 aes(x = x, y = overlap),
+                 fill = '#B3C0A2', alpha = 1, color = '#B3C0A2', linewidth = .2, width = 2) +
+  geom_vline(xintercept = c(64), linetype = 1, linewidth = 1) + # current median optimal days to flowering
+  geom_vline(xintercept = c(58), linetype = 2, linewidth = 1) + # future median opt 
+  # scale_fill_brewer(palette = "Dark2", direction = -1) +
+  scale_fill_manual(values = c("Commercial varieties" = '#F4CFB4',
+                             "USDA accessions" = '#BBE2D6')) +
+  annotate("text", x = 66, y = 300, label = "Current median\noptimum", hjust = 0, size = 5) +
+  annotate("text", x = 56, y = 300, label = "Future median\noptimum", hjust = 1, size = 5) +
+  labs(x = "Days to flowering",
+       y = "Number of genotypes") +
+  theme_bw(base_size = 16) +
+  theme(panel.grid = element_blank(),
+        legend.position = c(0.75, 0.4),
+        legend.title = element_blank()
+  )
+ggsave(paste0(figure_filepath,"/variation_DPP_forpdf.pdf"), 
+       width = 8, height = 6, dpi = 600, device = cairo_pdf)
+
 
 # Both datasets
 # no averaging of genotypes

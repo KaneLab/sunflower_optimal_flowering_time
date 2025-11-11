@@ -1316,7 +1316,7 @@ abs_yield_change %>%
 
 yld_dec_plt <- ggplot(abs_yield_change %>% filter(opt_relation_to_data != 'unclear'), 
        aes(x = delta_yield_pct)) +
-  geom_histogram(bins = 32, fill = 'royalblue', alpha = 0.6) +
+  geom_histogram(bins = 32, fill = '#859eec') +
   geom_vline(xintercept = median_yield_change, color = 'black', linetype = 5, size = 0.7) +
   # annotate('text', x = median_yield_change + 4, y = 25, hjust = 0, label = paste0(round(median_yield_change), "% median decrease in yield"), 
   #          color = 'black', size = 4) +
@@ -1326,6 +1326,7 @@ yld_dec_plt <- ggplot(abs_yield_change %>% filter(opt_relation_to_data != 'uncle
   theme_bw(base_size = 16) +
   theme(panel.grid = element_blank())
 yld_dec_plt
+
 
 ggsave(paste0(figure_filepath,"/county/yld_dec_7_days.png"),
        width = 6.5, height = 5)
